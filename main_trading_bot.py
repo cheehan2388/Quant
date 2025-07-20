@@ -21,11 +21,13 @@ from dotenv import load_dotenv
 # Add project paths
 sys.path.append(os.path.join(os.path.dirname(__file__), 'data_fetcher'))
 sys.path.append(os.path.join(os.path.dirname(__file__), 'trading'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'config'))
 
 from data_fetcher.binance_indicators import BinanceIndicatorsFetcher
 from trading.strategy import ZScoreStrategy
 from trading.position_manager import PositionManager
 from trading.order_manager import OrderManager
+from config.settings import ConfigManager
 
 
 class TradingBot:
@@ -35,11 +37,15 @@ class TradingBot:
     
     def __init__(self):
         """Initialize the trading bot"""
+        # Initialize configuration first
+        self.config = ConfigManager()
+        
+        # Setup logging based on configuration
         self.setup_logging()
         self.logger = logging.getLogger(__name__)
         
-        # Load configuration
-        self.load_config()
+        # Log configuration summary
+        self.config.log_config_summary()
         
         # Initialize components
         self.running = False
@@ -54,102 +60,82 @@ class TradingBot:
         self.total_signals = 0
         self.total_trades = 0
         self.last_trade_time = None
+        self.last_hour_check = None
+        
+        # Strategy state
+        self.strategy_initialized = False
         
         self.logger.info("TradingBot initialized")
     
     def setup_logging(self):
-        """Setup comprehensive logging"""
+        """Setup comprehensive logging based on configuration"""
         # Create logs directory if it doesn't exist
         os.makedirs('logs', exist_ok=True)
         
         # Setup logging configuration
         log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         
-        # File handler
-        file_handler = logging.FileHandler(
-            f'logs/trading_bot_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'
-        )
-        file_handler.setLevel(logging.INFO)
-        file_handler.setFormatter(logging.Formatter(log_format))
-        
-        # Console handler
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.INFO)
-        console_handler.setFormatter(logging.Formatter(log_format))
-        
         # Root logger
         root_logger = logging.getLogger()
-        root_logger.setLevel(logging.INFO)
-        root_logger.addHandler(file_handler)
-        root_logger.addHandler(console_handler)
+        root_logger.setLevel(getattr(logging, self.config.system.log_level))
         
-        print(f"Logging initialized. Log file: {file_handler.baseFilename}")
+        # Clear existing handlers
+        root_logger.handlers.clear()
+        
+        # File handler (if enabled)
+        if self.config.system.log_to_file:
+            file_handler = logging.FileHandler(
+                f'logs/trading_bot_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'
+            )
+            file_handler.setLevel(getattr(logging, self.config.system.log_level))
+            file_handler.setFormatter(logging.Formatter(log_format))
+            root_logger.addHandler(file_handler)
+            print(f"File logging enabled: {file_handler.baseFilename}")
+        
+        # Console handler (if enabled)
+        if self.config.system.log_to_console:
+            console_handler = logging.StreamHandler()
+            console_handler.setLevel(getattr(logging, self.config.system.log_level))
+            console_handler.setFormatter(logging.Formatter(log_format))
+            root_logger.addHandler(console_handler)
+            print("Console logging enabled")
+        
+        print(f"Logging initialized at {self.config.system.log_level} level")
     
-    def load_config(self):
-        """Load configuration from environment variables"""
-        load_dotenv()
-        
-        # API Keys
-        self.bybit_api_key = os.getenv('BYBIT_API_KEY')
-        self.bybit_secret = os.getenv('BYBIT_SECRET')
-        self.binance_api_key = os.getenv('BINANCE_API_KEY', '')
-        self.binance_secret = os.getenv('BINANCE_SECRET', '')
-        
-        # Trading parameters
-        self.symbol = os.getenv('SYMBOL', 'BTCUSDT')
-        self.position_size = float(os.getenv('POSITION_SIZE', '0.001'))
-        self.z_threshold = float(os.getenv('Z_SCORE_THRESHOLD', '2.1'))
-        self.rolling_window = int(os.getenv('ROLLING_WINDOW', '15'))
-        
-        # Operational parameters
-        self.data_fetch_interval = 60  # seconds
-        self.position_check_interval = 30  # seconds
-        self.max_position_time = 3600  # 1 hour max position time
-        
-        # Validate required configuration
-        if not self.bybit_api_key or not self.bybit_secret:
-            raise ValueError("Bybit API keys are required")
-        
-        self.logger.info(f"Configuration loaded:")
-        self.logger.info(f"  Symbol: {self.symbol}")
-        self.logger.info(f"  Position Size: {self.position_size}")
-        self.logger.info(f"  Z-Score Threshold: ±{self.z_threshold}")
-        self.logger.info(f"  Rolling Window: {self.rolling_window}")
+
     
     def initialize_components(self):
         """Initialize all trading components"""
         try:
             # Initialize Binance data fetcher
             self.binance_fetcher = BinanceIndicatorsFetcher(
-                api_key=self.binance_api_key,
-                secret=self.binance_secret
+                api_key=self.config.api_keys['binance_api_key'],
+                secret=self.config.api_keys['binance_secret'],
+                config_manager=self.config
             )
             
             # Initialize Bybit exchange
             self.bybit_exchange = ccxt.bybit({
-                'apiKey': self.bybit_api_key,
-                'secret': self.bybit_secret,
-                'sandbox': False,  # Set to True for testnet
-                'enableRateLimit': True,
+                'apiKey': self.config.api_keys['bybit_api_key'],
+                'secret': self.config.api_keys['bybit_secret'],
+                'sandbox': self.config.exchange.bybit_testnet,
+                'enableRateLimit': self.config.exchange.bybit_rate_limit,
             })
             
             # Test exchange connection
             balance = self.bybit_exchange.fetch_balance()
             self.logger.info(f"Bybit connection successful. USDT Balance: {balance.get('USDT', {}).get('total', 'N/A')}")
             
-            # Initialize strategy
-            self.strategy = ZScoreStrategy(
-                rolling_window=self.rolling_window,
-                z_threshold=self.z_threshold
-            )
+            # Initialize strategy (will be populated with historical data later)
+            self.strategy = ZScoreStrategy(config_manager=self.config)
             
             # Initialize position manager
             # Convert symbol format for Bybit (BTCUSDT -> BTC/USDT:USDT)
-            bybit_symbol = f"{self.symbol[:-4]}/USDT:USDT" if self.symbol.endswith('USDT') else self.symbol
+            bybit_symbol = f"{self.config.symbol[:-4]}/USDT:USDT" if self.config.symbol.endswith('USDT') else self.config.symbol
             self.position_manager = PositionManager(self.bybit_exchange, bybit_symbol)
             
             # Initialize order manager
-            self.order_manager = OrderManager(self.bybit_exchange, bybit_symbol, self.position_size)
+            self.order_manager = OrderManager(self.bybit_exchange, bybit_symbol, self.config.trading.position_size)
             
             self.logger.info("All components initialized successfully")
             return True
@@ -158,18 +144,68 @@ class TradingBot:
             self.logger.error(f"Error initializing components: {e}")
             return False
     
+    def initialize_strategy_with_historical_data(self) -> bool:
+        """Initialize strategy with historical data"""
+        try:
+            self.logger.info("Loading initial historical data...")
+            
+            # Load historical data
+            historical_data = self.binance_fetcher.load_initial_historical_data(self.config.symbol)
+            
+            if not historical_data:
+                self.logger.error("Failed to load initial historical data")
+                return False
+            
+            # Initialize strategy with historical data
+            success = self.strategy.initialize_with_historical_data(historical_data)
+            
+            if not success:
+                self.logger.error("Failed to initialize strategy with historical data")
+                return False
+            
+            self.strategy_initialized = True
+            self.logger.info("Strategy initialized with historical data successfully")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Error initializing strategy with historical data: {e}")
+            return False
+    
+    def should_fetch_new_data(self) -> bool:
+        """Check if we should fetch new data based on timing configuration"""
+        current_time = datetime.now()
+        
+        # If not fetching on hour marks, use regular interval
+        if not self.config.data.fetch_on_hour_mark:
+            return True  # Let the main loop handle timing
+        
+        # Check if we're at a new hour
+        current_hour = current_time.replace(minute=0, second=0, microsecond=0)
+        
+        if self.last_hour_check is None or self.last_hour_check < current_hour:
+            self.last_hour_check = current_hour
+            return True
+        
+        return False
+    
     def fetch_and_process_data(self) -> bool:
         """Fetch data and process through strategy"""
         try:
-            # Fetch combined indicator
-            combined_indicator = self.binance_fetcher.get_combined_indicator(self.symbol)
+            # Check if we should fetch new data
+            if not self.should_fetch_new_data():
+                return True  # Not time to fetch yet, but not an error
             
-            if combined_indicator is None:
-                self.logger.warning("Could not fetch combined indicator")
+            # Fetch combined indicator with timestamp
+            result = self.binance_fetcher.get_combined_indicator_with_timestamp(self.config.symbol)
+            
+            if result is None:
+                self.logger.warning("Could not fetch combined indicator with timestamp")
                 return False
             
+            combined_indicator, timestamp = result
+            
             # Add to strategy
-            success = self.strategy.add_indicator_value(combined_indicator)
+            success = self.strategy.add_indicator_value(combined_indicator, timestamp)
             
             if not success:
                 self.logger.warning("Failed to add indicator value to strategy")
@@ -237,9 +273,10 @@ class TradingBot:
             if not self.position_manager.is_in_position():
                 return
             
-            # Check maximum position time
-            if (self.position_manager.entry_time and 
-                datetime.now() - self.position_manager.entry_time > timedelta(seconds=self.max_position_time)):
+                    # Check maximum position time
+        max_position_time = timedelta(hours=self.config.trading.max_position_time_hours)
+        if (self.position_manager.entry_time and 
+            datetime.now() - self.position_manager.entry_time > max_position_time):
                 
                 self.logger.info(f"Position held for too long, closing position")
                 
@@ -299,6 +336,11 @@ class TradingBot:
                 self.logger.error("Failed to initialize components. Exiting.")
                 return False
             
+            # Initialize strategy with historical data
+            if not self.initialize_strategy_with_historical_data():
+                self.logger.error("Failed to initialize strategy with historical data. Exiting.")
+                return False
+            
             # Setup signal handlers for graceful shutdown
             signal.signal(signal.SIGINT, self.signal_handler)
             signal.signal(signal.SIGTERM, self.signal_handler)
@@ -309,28 +351,44 @@ class TradingBot:
             last_data_fetch = datetime.min
             last_status_log = datetime.min
             
-            self.logger.info("Trading bot started successfully")
+            self.logger.info("Trading bot started successfully and ready for trading")
             
             while self.running:
                 current_time = datetime.now()
                 
                 try:
-                    # Fetch data at specified intervals
-                    if (current_time - last_data_fetch).total_seconds() >= self.data_fetch_interval:
+                    # Handle data fetching based on configuration
+                    should_fetch = False
+                    
+                    if self.config.data.fetch_on_hour_mark:
+                        # Only fetch at hour marks
+                        if self.should_fetch_new_data():
+                            should_fetch = True
+                    else:
+                        # Fetch at regular intervals (every 60 seconds by default)
+                        if (current_time - last_data_fetch).total_seconds() >= 60:
+                            should_fetch = True
+                    
+                    if should_fetch:
                         self.logger.debug("Fetching new data...")
                         if self.fetch_and_process_data():
                             last_data_fetch = current_time
                             
                             # Execute trading logic after data update
-                            self.execute_trading_logic()
+                            if self.config.system.enable_trading:
+                                self.execute_trading_logic()
+                            else:
+                                self.logger.info("Trading disabled in configuration")
                     
-                    # Log status every 10 minutes
-                    if (current_time - last_status_log).total_seconds() >= 600:
+                    # Log status at configured intervals
+                    status_interval = self.config.system.status_log_interval_minutes * 60
+                    if (current_time - last_status_log).total_seconds() >= status_interval:
                         self.log_status()
                         last_status_log = current_time
                     
                     # Sleep for a short time to prevent excessive CPU usage
-                    time.sleep(5)
+                    sleep_time = 60 if self.config.data.fetch_on_hour_mark else 5
+                    time.sleep(sleep_time)
                     
                 except KeyboardInterrupt:
                     self.logger.info("Keyboard interrupt received. Shutting down...")

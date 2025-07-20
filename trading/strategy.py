@@ -5,6 +5,12 @@ from typing import Optional, List, Tuple
 from collections import deque
 from scipy import stats
 from datetime import datetime
+import sys
+import os
+
+# Add config path
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from config.settings import get_config
 
 
 class ZScoreStrategy:
@@ -12,20 +18,26 @@ class ZScoreStrategy:
     Trading strategy based on Z-score of combined Open Interest and Long/Short Ratio
     """
     
-    def __init__(self, rolling_window: int = 15, z_threshold: float = 2.1):
+    def __init__(self, rolling_window: int = None, z_threshold: float = None, config_manager=None):
         """
         Initialize the Z-score strategy
         
         Args:
-            rolling_window: Number of periods for rolling mean calculation
-            z_threshold: Z-score threshold for trading signals
+            rolling_window: Number of periods for rolling mean calculation (uses config if None)
+            z_threshold: Z-score threshold for trading signals (uses config if None)
+            config_manager: Configuration manager instance
         """
         self.logger = logging.getLogger(__name__)
-        self.rolling_window = rolling_window
-        self.z_threshold = z_threshold
+        
+        # Get configuration
+        self.config = config_manager or get_config()
+        
+        # Use config values if not provided
+        self.rolling_window = rolling_window or self.config.trading.rolling_window
+        self.z_threshold = z_threshold or self.config.trading.z_score_threshold
         
         # Data storage for rolling calculations
-        self.indicator_history = deque(maxlen=rolling_window * 2)  # Keep extra for safety
+        self.indicator_history = deque(maxlen=self.rolling_window * 2)  # Keep extra for safety
         self.z_scores = deque(maxlen=100)  # Keep history of z-scores
         self.signals = deque(maxlen=100)  # Keep history of signals
         
@@ -33,9 +45,54 @@ class ZScoreStrategy:
         self.last_indicator_value = None
         self.last_indicator_timestamp = None
         self.stale_data_count = 0
-        self.max_stale_data_tolerance = 3  # Maximum consecutive stale data points
         
-        self.logger.info(f"Initialized Z-Score Strategy: window={rolling_window}, threshold=±{z_threshold}")
+        # Strategy state
+        self.is_initialized = False
+        
+        self.logger.info(f"Initialized Z-Score Strategy: window={self.rolling_window}, threshold=±{self.z_threshold}")
+    
+    def initialize_with_historical_data(self, historical_data: List[Tuple[float, datetime]]) -> bool:
+        """
+        Initialize strategy with historical data
+        
+        Args:
+            historical_data: List of (indicator_value, timestamp) tuples
+            
+        Returns:
+            True if initialization successful, False otherwise
+        """
+        if not historical_data:
+            self.logger.error("No historical data provided for initialization")
+            return False
+        
+        if len(historical_data) < self.rolling_window:
+            self.logger.error(f"Insufficient historical data: {len(historical_data)} < {self.rolling_window}")
+            return False
+        
+        self.logger.info(f"Initializing strategy with {len(historical_data)} historical data points")
+        
+        # Clear existing data
+        self.indicator_history.clear()
+        self.z_scores.clear()
+        self.signals.clear()
+        
+        # Add historical data
+        for indicator_value, timestamp in historical_data:
+            self.indicator_history.append({
+                'value': indicator_value,
+                'timestamp': timestamp
+            })
+        
+        # Update tracking
+        if historical_data:
+            self.last_indicator_value = historical_data[-1][0]
+            self.last_indicator_timestamp = historical_data[-1][1]
+        
+        self.is_initialized = True
+        self.stale_data_count = 0
+        
+        self.logger.info(f"Strategy initialized successfully. Ready for trading signals.")
+        return True
     
     def add_indicator_value(self, indicator_value: float, timestamp: datetime = None) -> bool:
         """
@@ -58,11 +115,17 @@ class ZScoreStrategy:
                 self.logger.warning(f"Stale data detected: {indicator_value} "
                                   f"(count: {self.stale_data_count})")
                 
-                if self.stale_data_count >= self.max_stale_data_tolerance:
+                if self.stale_data_count >= self.config.data.max_stale_data_tolerance:
                     self.logger.error(f"Too many consecutive stale data points: {self.stale_data_count}")
                     return False
             else:
                 self.stale_data_count = 0  # Reset stale data count
+        
+        # Check for timestamp freshness if provided
+        if timestamp and self.last_indicator_timestamp:
+            if timestamp <= self.last_indicator_timestamp:
+                self.logger.warning(f"Data timestamp is not newer than previous: {timestamp} <= {self.last_indicator_timestamp}")
+                # Don't return False here as this might be expected in some cases
         
         # Add the new value
         self.indicator_history.append({
@@ -207,7 +270,8 @@ class ZScoreStrategy:
         Returns:
             True if ready, False otherwise
         """
-        return len(self.indicator_history) >= self.rolling_window
+        return (self.is_initialized and 
+                len(self.indicator_history) >= self.rolling_window)
     
     def get_strategy_stats(self) -> dict:
         """
