@@ -1,0 +1,10 @@
+*.csv
+*.env
+*.json
+*.log
+Balaena_Phase_2/
+**/config.py
+*.env
+*.sh
+*.pyc
+**/cybo.coinglass.py
