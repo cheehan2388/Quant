@@ -17,6 +17,7 @@ class Preprocessor(ABC):
     
     @abstractmethod
     def process(self, data: Union[pd.DataFrame, List[Dict], np.ndarray]) -> Dict[str, Any]:
+        """傳入的data 可是pd.DataFrame,List[Dict] or np,out put dic"""
         """Process the input data and return processed results"""
         pass
     

@@ -51,9 +51,10 @@ import pandas as pd
 import requests
 from datetime import datetime, timedelta
 
-API_ENDPOINT = 'https://fapi.binance.com/fapi/v1/klines'
-symbol       = 'SOLUSDT'
-interval     = '1h'
+API_ENDPOINT = 'https://fapi.binance.com//futures/data/takerlongshortRatio' #'https://fapi.binance.com/fapi/v1/klines'
+
+symbol       = 'BTCUSDT'
+interval     = '5m'
 limit        = 1500
 
 start_time = datetime(2020, 1, 2,tzinfo= timezone.utc)
@@ -77,7 +78,7 @@ while start_time < end_time:
     # 正常情况下，data 是一个 list of lists
     all_klines.extend(data)
     # 每次向后移动 limit 根 K 线对应的时长：limit * 1h
-    start_time += timedelta(hours=limit)
+    start_time += timedelta(min=limit)
 
 # 把所有 kline 串成 DataFrame，一次定义好列名
 cols = [

@@ -42,7 +42,7 @@ class StatisticalFeatureEngineer(FeatureEngineer):
             'zscore', 'zscore_mean', 'zscore_std', 'zscore_current_value',
             'percentile_rank', 'rolling_mean', 'rolling_std', 'rolling_min', 'rolling_max'
         ]
-
+    #改
     def calculate_features(self, data: pd.DataFrame) -> Dict[str, Any]:
         try:
             series = next(
@@ -96,7 +96,7 @@ class TechnicalFeatureEngineer(FeatureEngineer):
             'bb_upper', 'bb_middle', 'bb_lower', 'bb_position', 'bb_squeeze',
             'price_change', 'price_change_pct', 'volatility', 'current_price'
         ]
-
+#這裏可以做feature engineering
     def calculate_features(self, data: pd.DataFrame) -> Dict[str, Any]:
         try:
             series = next(
@@ -277,3 +277,4 @@ def create_default_feature_engineering_manager() -> FeatureEngineeringManager:
     mgr.add_engineer("technical", TechnicalFeatureEngineer())
     mgr.add_engineer("volume", VolumeFeatureEngineer())
     return mgr
+ 

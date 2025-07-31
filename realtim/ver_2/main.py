@@ -106,6 +106,7 @@ class EnhancedTradingSystem:
     def get_available_features(self) -> Dict[str, List[str]]:
         return self.feature_manager.get_available_features()
     
+
     async def run_single_cycle(self, symbol: str = None) -> Dict[str, Any]:
         symbol = symbol or Config.TRADING_SYMBOL
         cycle_results = {
@@ -119,6 +120,7 @@ class EnhancedTradingSystem:
         
         try:
             logger.info(f"Fetching data for {symbol}...")
+            #改數據
             data_result = await self.data_manager.fetch_primary_open_interest(symbol, "binance")
             
             if not data_result:
@@ -210,6 +212,7 @@ class EnhancedTradingSystem:
         finally:
             await self.stop()
     
+    #test if successfull get data from provider or bybit
     async def _test_connections(self):
         logger.info("Testing connections...")
         
