@@ -1,0 +1,292 @@
+bulk:
+  wikipedia_pageviews:
+    enabled: true
+    base_params:
+      project: en.wikipedia
+      access: all-access
+      agent: all-agents
+      granularity: daily
+      frequency: 1D
+    output_tpl: wikipedia_{slug}_daily.csv
+    articles:
+      - Bitcoin
+      - Ethereum
+      - Binance
+      - Chainlink
+      - XRP
+      - Dogecoin
+      - Solana
+      - Tether
+      - USDC
+      - Uniswap
+      - Aave
+      - Sushiswap
+      - Polygon
+      - Polkadot
+      - Cardano
+      - Cosmos
+      - Avalanche
+      - Near
+      - Arbitrum
+      - Optimism
+      - StarkNet
+      - zkSync
+      - EigenLayer
+      - Restaking
+      - DeFi
+      - NFT
+      - Stablecoin
+      - Bitcoin ETF
+      - Ethereum ETF
+      - Bitcoin halving
+      - Mt. Gox
+      - FTX
+      - Binance.US
+      - Coinbase
+      - Kraken
+      - Bitfinex
+      - Bitstamp
+      - OKX
+      - KuCoin
+      - Huobi
+      - Bybit
+      - Hashrate
+      - Mining
+      - Lightning Network
+      - Ordinals
+      - BRC-20
+      - Runes
+      - Liquid Network
+      - Taproot
+      - MakerDAO
+      - Curve Finance
+      - Lido
+      - Rocket Pool
+      - Friend.tech
+      - Base (L2)
+      - Coinbase Wallet
+      - MetaMask
+      - Phantom wallet
+      - Ledger
+      - Trezor
+      - Cold wallet
+      - Hot wallet
+      - On-chain
+      - Off-chain
+      - Layer 2
+      - Layer 1
+      - Rollup
+      - ZK Rollup
+      - Optimistic rollup
+      - MEV
+      - Flashbots
+      - Uniswap v4
+      - Dencun upgrade
+      - Cancun upgrade
+      - Proto-danksharding
+      - Danksharding
+      - EIP-1559
+      - EIP-4844
+      - Cross-chain bridge
+      - Bridge hacks
+      - Rug pull
+      - Airdrop
+      - Token unlock
+      - Vesting
+      - Onchain governance
+      - Snapshot (voting)
+      - Tokenomics
+      - Market cap
+      - Liquidity
+      - Volatility
+      - Open interest
+      - Funding rate
+      - Basis trade
+      - Futures
+      - Options
+      - Perpetual swap
+      - Yield farming
+      - Liquidity mining
+      - Staking
+      - Restaking
+      - Liquid staking
+      - Real world assets
+      - RWA
+      - OFAC sanctions
+      - Tornado Cash
+      - Privacy coin
+      - Monero
+      - Zcash
+      - Zero-knowledge proof
+      - zk-SNARK
+      - zk-STARK
+      - Rollkit
+      - Celestia
+      - EigenDA
+      - Data availability
+      - Dankrad Feist
+      - Vitalik Buterin
+      - Changpeng Zhao
+      - Brian Armstrong
+      - Satoshi Nakamoto
+      - Michael Saylor
+      - Cathie Wood
+      - BlackRock
+      - Fidelity Investments
+      - Grayscale Investments
+      - MicroStrategy
+      - TSMC
+      - NVIDIA
+      - GPU mining
+      - ASIC
+      - Bitmain
+      - Antminer
+      - Hashrate index
+      - Electricity price
+      - Renewable energy
+      - Carbon credit
+      - ESG
+      - Basel III
+      - MiCA
+      - SEC
+      - CFTC
+      - BIS
+      - IMF
+      - World Bank
+      - CPI
+      - PPI
+      - GDP
+      - Unemployment
+      - Nonfarm payrolls
+      - Retail sales
+      - PMI
+      - ISM
+      - Housing starts
+      - Building permits
+      - Trade balance
+      - Current account
+      - Industrial production
+      - Capacity utilization
+      - M2
+      - Fed funds rate
+      - Dot plot
+      - FOMC
+      - QE
+      - QT
+      - Balance sheet
+      - Treasury yields
+      - Yield curve
+      - Inverted yield curve
+      - VIX
+      - Gold price
+      - Oil price
+      - Copper price
+      - S&P 500
+      - Nasdaq
+      - Dow Jones
+      - Russell 2000
+      - MSCI World
+      - MSCI EM
+      - DXY
+      - EURUSD
+      - USDJPY
+      - GBPUSD
+      - USDCNH
+      - USDT
+      - USDC
+      - FRAX
+      - DAI
+      - LUSD
+      - PayPal USD
+      - CBDC
+      - e-CNY
+      - e-HKD
+      - e-KRW
+      - e-EUR
+      - e-USD
+      - Stablecoin regulation
+      - Crypto regulation
+      - KYC
+      - AML
+      - Chainalysis
+      - Elliptic
+      - On-chain analytics
+      - Dune Analytics
+      - Flipside Crypto
+      - Nansen
+      - Glassnode
+      - Messari
+      - Coin Metrics
+      - Kaiko
+
+  open_meteo_hourly:
+    enabled: true
+    base_params:
+      hourly: temperature_2m
+      frequency: 1H
+    output_tpl: weather_{name}_1h.csv
+    locations:
+      - { name: Taipei, latitude: 25.0375, longitude: 121.5637 }
+      - { name: NewYork, latitude: 40.7128, longitude: -74.0060 }
+      - { name: London, latitude: 51.5072, longitude: -0.1276 }
+      - { name: Singapore, latitude: 1.3521, longitude: 103.8198 }
+      - { name: Tokyo, latitude: 35.6762, longitude: 139.6503 }
+      - { name: Seoul, latitude: 37.5665, longitude: 126.9780 }
+      - { name: HongKong, latitude: 22.3193, longitude: 114.1694 }
+      - { name: Sydney, latitude: -33.8688, longitude: 151.2093 }
+      - { name: Paris, latitude: 48.8566, longitude: 2.3522 }
+      - { name: Frankfurt, latitude: 50.1109, longitude: 8.6821 }
+      - { name: Zurich, latitude: 47.3769, longitude: 8.5417 }
+      - { name: SanFrancisco, latitude: 37.7749, longitude: -122.4194 }
+      - { name: LosAngeles, latitude: 34.0522, longitude: -118.2437 }
+      - { name: Chicago, latitude: 41.8781, longitude: -87.6298 }
+      - { name: Miami, latitude: 25.7617, longitude: -80.1918 }
+      - { name: Toronto, latitude: 43.6532, longitude: -79.3832 }
+      - { name: Vancouver, latitude: 49.2827, longitude: -123.1207 }
+      - { name: MexicoCity, latitude: 19.4326, longitude: -99.1332 }
+      - { name: SaoPaulo, latitude: -23.5505, longitude: -46.6333 }
+      - { name: BuenosAires, latitude: -34.6037, longitude: -58.3816 }
+      - { name: Johannesburg, latitude: -26.2041, longitude: 28.0473 }
+      - { name: Cairo, latitude: 30.0444, longitude: 31.2357 }
+      - { name: Dubai, latitude: 25.2048, longitude: 55.2708 }
+      - { name: Mumbai, latitude: 19.0760, longitude: 72.8777 }
+      - { name: Delhi, latitude: 28.7041, longitude: 77.1025 }
+      - { name: Jakarta, latitude: -6.2088, longitude: 106.8456 }
+      - { name: Bangkok, latitude: 13.7563, longitude: 100.5018 }
+      - { name: Manila, latitude: 14.5995, longitude: 120.9842 }
+      - { name: KualaLumpur, latitude: 3.1390, longitude: 101.6869 }
+      - { name: HoChiMinh, latitude: 10.8231, longitude: 106.6297 }
+      - { name: Hanoi, latitude: 21.0278, longitude: 105.8342 }
+      - { name: Beijing, latitude: 39.9042, longitude: 116.4074 }
+      - { name: Shanghai, latitude: 31.2304, longitude: 121.4737 }
+      - { name: Shenzhen, latitude: 22.5429, longitude: 114.0596 }
+      - { name: Hangzhou, latitude: 30.2741, longitude: 120.1551 }
+      - { name: Chengdu, latitude: 30.5728, longitude: 104.0668 }
+      - { name: Wuhan, latitude: 30.5928, longitude: 114.3055 }
+      - { name: Chongqing, latitude: 29.4316, longitude: 106.9123 }
+      - { name: Guangzhou, latitude: 23.1291, longitude: 113.2644 }
+      - { name: XiAn, latitude: 34.3416, longitude: 108.9398 }
+
+  exchangerate_host_timeseries:
+    enabled: true
+    base_params:
+      frequency: 1D
+    output_tpl: fx_{base}_{sym}_1d.csv
+    base_currencies: [USD, EUR, GBP, JPY, CHF]
+    symbols: [USD, EUR, GBP, JPY, CHF, AUD, CAD, CNY, HKD, SGD, TWD, KRW, INR, BRL, MXN, ZAR]
+
+  ecb_fx_daily:
+    enabled: true
+    base_params:
+      frequency: 1D
+    output_tpl: ecb_eur_{sym}_1d.csv
+    symbols: [USD, GBP, JPY, CHF, CNY, HKD, SGD]
+
+  worldbank_indicator:
+    enabled: false
+    base_params:
+      frequency: 1Y
+    output_tpl: worldbank_{country}_{indicator}.csv
+    countries: [US, CN, JP, DE, GB, FR, IN, BR]
+    indicators: [SP.POP.TOTL, NY.GDP.MKTP.CD, NE.EXP.GNFS.CD, NE.IMP.GNFS.CD]
+
