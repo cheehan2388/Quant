@@ -9,4 +9,4 @@ Balaena_Phase_2/
 *.sh
 *.pyc
 **/cybo.coinglass.py
-backtest_c/
+*backtest_c/
