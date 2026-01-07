@@ -51,7 +51,7 @@ import pandas as pd
 import requests
 from datetime import datetime, timedelta
 
-API_ENDPOINT = 'https://fapi.binance.com//futures/data/takerlongshortRatio' #'https://fapi.binance.com/fapi/v1/klines'
+API_ENDPOINT = 'https://fapi.binance.com/fapi/v1/premiumIndexKlines' #'https://fapi.binance.com/fapi/v1/klines'
 
 symbol       = 'BTCUSDT'
 interval     = '5m'
@@ -82,10 +82,15 @@ while start_time < end_time:
 
 # 把所有 kline 串成 DataFrame，一次定义好列名
 cols = [
-    'Open time', 'Open', 'High', 'Low', 'Close', 'Volume',
-    'Close time', 'Quote asset volume', 'Number of trades',
-    'Taker buy base asset volume', 'Taker buy quote asset volume', 'Ignore'
+    'Open time', 'Open', 'High', 'Low', 'Close', 'Ignor',
+    'Close time', 'Ignore', 'Ignore',
+    'Ignore', 'Ignore', 'Ignore'
 ]
+# cols = [
+#     'Open time', 'Open', 'High', 'Low', 'Close', 'Volume',
+#     'Close time', 'Quote asset volume', 'Number of trades',
+#     'Taker buy base asset volume', 'Taker buy quote asset volume', 'Ignore'
+# ]
 df = pd.DataFrame(all_klines, columns=cols)
 
 # 转换时间戳列

@@ -1,32 +1,44 @@
 import numpy  as    np
 import pandas as    pd
-import talib  as    tb
+try:
+    import talib  as    tb
+except Exception:
+    tb = None
 # -------------------------
 def compute_ewma_diff(series, fast_span, slow_span, alpha):
     return series.ewm(span=fast_span, adjust=False).mean() \
          - series.ewm(span=slow_span, adjust=False).mean()
 
 def compute_RSI(series, window):
-    arr = series.values
-    return tb.RSI(arr, timeperiod = window)
+    if tb is not None:
+        arr = series.values
+        return tb.RSI(arr, timeperiod = window)
+    # Fallback simple RSI implementation if ta-lib is unavailable
+    delta = series.diff()
+    gain = delta.clip(lower=0).rolling(window).mean()
+    loss = (-delta.clip(upper=0)).rolling(window).mean()
+    rs = gain / (loss + 1e-12)
+    rsi = 100 - (100 / (1 + rs))
+    return rsi
 
 def compute_zscore(series, window):
     m = series.rolling(window).mean()
-    s = series.rolling(window).std()
-    return (series - m) / s
+    s = series.rolling(window).std(ddof=0)
+    z = (series - m) / (s.replace(0, np.nan))
+    return z.fillna(0)
 
 def compute_minmax(series, window):
     lo = series.rolling(window).min()
     hi = series.rolling(window).max()
-    return (2*(series - lo) / (hi - lo + 1e-9))- 1
+    scaled = (2 * (series - lo) / (hi - lo + 1e-12)) - 1
+    return scaled
 
 def compute_ma_double(series, short_w, long_w):
     return series.rolling(short_w).mean() - series.rolling(long_w).mean()
 
 def compute_ma_diff(series, window):
     sma = series.rolling(window).mean()
-    
-    return sma
+    return series - sma
 
 def compute_exp_sum(series, window):
     

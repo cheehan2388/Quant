@@ -1,0 +1,276 @@
+import os
+import json
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+import warnings
+warnings.filterwarnings('ignore')
+
+def load_data(file_path='../Data/All_data/merged/BTC_merged_V.csv'):
+    """Load and preprocess the merged data"""
+    df = pd.read_csv(file_path)
+    df['datetime'] = pd.to_datetime(df['datetime'])
+    df = df.sort_values('datetime').reset_index(drop=True)
+    df = df.ffill().bfill()  # Forward fill then backward fill missing values
+    return df
+
+def calculate_future_returns(df, close_dir='../Data/close', shifts=[-2, -8, -24]):
+    """Calculate future returns for different shift windows"""
+    future_returns = {}
+    
+    # Use the first close file for future returns calculation
+    close_path = os.path.join(close_dir, 'Binance_1Hour_BTCUSD_T.csv')
+    close_df = pd.read_csv(close_path)
+    close_df['datetime'] = pd.to_datetime(close_df['datetime'])
+    
+    # Merge with main dataframe to get close prices
+    merged = pd.merge(df, close_df[['datetime', 'Close']], on='datetime', how='left')
+    
+    # Calculate future returns for different shifts
+    for shift in shifts:
+        future_return_col = f'future_return_{abs(shift)}'
+        merged[future_return_col] = merged['Close'].pct_change(periods=abs(shift)).shift(shift)
+        future_returns[future_return_col] = merged[future_return_col]
+    
+    # Add future returns to original dataframe
+    for shift in shifts:
+        future_return_col = f'future_return_{abs(shift)}'
+        df[future_return_col] = future_returns[future_return_col]
+    
+    return df, future_returns
+
+def apply_rolling_mean(series, window):
+    """Apply rolling mean transformation"""
+    return series.rolling(window=window, min_periods=1).mean()
+
+def apply_rolling_minmax_scaling(series, window):
+    """Apply rolling min-max scaling"""
+    def rolling_minmax(x):
+        if len(x) < 2:
+            return x.iloc[-1] if hasattr(x, 'iloc') else x[-1]
+        min_val = x.min()
+        max_val = x.max()
+        if max_val == min_val:
+            return 0.0
+        # Return only the scaled value of the last point in the window
+        return (x.iloc[-1] - min_val) / (max_val - min_val) if hasattr(x, 'iloc') else (x[-1] - min_val) / (max_val - min_val)
+    
+    return series.rolling(window=window, min_periods=1).apply(rolling_minmax, raw=False)
+
+def apply_rolling_zscore(series, window):
+    """Apply rolling z-score transformation"""
+    def rolling_zscore(x):
+        if len(x) < 2:
+            return 0.0
+        mean_val = x.mean()
+        std_val = x.std()
+        if std_val == 0:
+            return 0.0
+        # Return only the z-score of the last point in the window
+        return (x.iloc[-1] - mean_val) / std_val if hasattr(x, 'iloc') else (x[-1] - mean_val) / std_val
+    
+    return series.rolling(window=window, min_periods=1).apply(rolling_zscore, raw=False)
+
+def calculate_ic(feature_series, target_series):
+    """Calculate Information Coefficient (Pearson correlation)"""
+    # Remove NaN values
+    valid_mask = ~(pd.isna(feature_series) | pd.isna(target_series))
+    if valid_mask.sum() < 10:  # Need at least 10 valid observations
+        return 0.0
+    
+    feature_clean = feature_series[valid_mask]
+    target_clean = target_series[valid_mask]
+    
+    # Calculate correlation
+    correlation = feature_clean.corr(target_clean,method = "spearman")
+    return correlation if not pd.isna(correlation) else 0.0
+
+def generate_all_features(df):
+    """Generate all transformed features according to the specification"""
+    
+    # Get all numeric columns (exclude datetime and future returns)
+    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+    exclude_cols = ['datetime'] + [col for col in df.columns if 'future_return' in col]
+    feature_cols = [col for col in numeric_cols if col not in exclude_cols]
+    
+    print(f"Processing {len(feature_cols)} base features...")
+    
+    # Define transformation tools
+    transformations = {
+        'rolling_mean_12': lambda x: apply_rolling_mean(x, 12),
+        'rolling_mean_24': lambda x: apply_rolling_mean(x, 24),
+        'rolling_mean_52': lambda x: apply_rolling_mean(x, 52),
+        'rolling_minmax_12': lambda x: apply_rolling_minmax_scaling(x, 12),
+        'rolling_minmax_24': lambda x: apply_rolling_minmax_scaling(x, 24),
+        'rolling_minmax_52': lambda x: apply_rolling_minmax_scaling(x, 52),
+        'rolling_zscore_12': lambda x: apply_rolling_zscore(x, 12),
+        'rolling_zscore_24': lambda x: apply_rolling_zscore(x, 24),
+        'rolling_zscore_52': lambda x: apply_rolling_zscore(x, 52)
+    }
+    
+    # Store all transformed features
+    transformed_features = {}
+    feature_metadata = {}
+    
+    # Apply all transformations to all columns
+    for col in feature_cols:
+        print(f"Processing column: {col}")
+        
+        for transform_name, transform_func in transformations.items():
+            feature_name = f"{col}_{transform_name}"
+            try:
+                #df[col] = np.log1p(df[col])
+                transformed_series = transform_func(df[col])
+                transformed_features[feature_name] = transformed_series
+                
+                # Store metadata
+                feature_metadata[feature_name] = {
+                    'base_column': col,
+                    'transformation': transform_name,
+                    'ic_values': {},
+                    'max_ic': 0.0,
+                    'best_shift': None
+                }
+                
+            except Exception as e:
+                print(f"Error processing {feature_name}: {str(e)}")
+                continue
+    
+    return transformed_features, feature_metadata
+
+def calculate_ics_for_all_features(df, transformed_features, feature_metadata, shifts=[-2, -8, -24]):
+    """Calculate IC values for all transformed features"""
+    
+    print(f"Calculating IC values for {len(transformed_features)} transformed features...")
+    
+    # Get future return columns
+    future_return_cols = [f'future_return_{abs(shift)}' for shift in shifts]
+    
+    for feature_name, feature_series in transformed_features.items():
+        ic_values = {}
+        
+        # Calculate IC for each shift window
+        for shift in shifts:
+            future_return_col = f'future_return_{abs(shift)}'
+            if future_return_col in df.columns:
+                ic_value = calculate_ic(feature_series, df[future_return_col])
+                ic_values[f'shift_{shift}'] = ic_value
+            else:
+                ic_values[f'shift_{shift}'] = 0.0
+        
+        # Find maximum absolute IC and corresponding shift
+        abs_ic_values = {k: abs(v) for k, v in ic_values.items()}
+        best_shift_key = max(abs_ic_values.keys(), key=abs_ic_values.get)
+        max_ic = ic_values[best_shift_key]
+        
+        # Update metadata
+        feature_metadata[feature_name]['ic_values'] = ic_values
+        feature_metadata[feature_name]['max_ic'] = max_ic
+        feature_metadata[feature_name]['best_shift'] = best_shift_key
+        
+        # Add transformed feature to dataframe
+        df[feature_name] = feature_series
+    
+    return df, feature_metadata
+
+def generate_report(feature_metadata, output_path='feature_engineering_report_N_S.json'):
+    """Generate JSON report with all feature information"""
+    
+    # Sort features by maximum absolute IC (descending)
+    sorted_features = sorted(
+        feature_metadata.items(),
+        key=lambda x: abs(x[1]['max_ic']),
+        reverse=True
+    )
+    
+    report = {
+        'summary': {
+            'total_features': len(feature_metadata),
+            'transformation_types': [
+                'rolling_mean_12', 'rolling_mean_24', 'rolling_mean_52',
+                'rolling_minmax_12', 'rolling_minmax_24', 'rolling_minmax_52',
+                'rolling_zscore_12', 'rolling_zscore_24', 'rolling_zscore_52'
+            ],
+            'shift_windows': [-2, -8, -24],
+            'top_10_features': [name for name, _ in sorted_features[:10]]
+        },
+        'features': {}
+    }
+    
+    # Add detailed information for each feature
+    for feature_name, metadata in sorted_features:
+        report['features'][feature_name] = {
+            'base_column': metadata['base_column'],
+            'transformation': metadata['transformation'],
+            'ic_values': {
+                'shift_-2': metadata['ic_values'].get('shift_-2', 0.0),
+                'shift_-8': metadata['ic_values'].get('shift_-8', 0.0),
+                'shift_-24': metadata['ic_values'].get('shift_-24', 0.0)
+            },
+            'max_ic': metadata['max_ic'],
+            'best_shift': metadata['best_shift'],
+            'abs_max_ic': abs(metadata['max_ic'])
+        }
+    
+    # Save report
+    with open(output_path, 'w') as f:
+        json.dump(report, f, indent=2)
+    
+    print(f"Report saved to {output_path}")
+    return report
+
+def save_transformed_features(df, output_path='transformed_features_V_S.csv'):
+    """Save all transformed features to CSV"""
+    # Select columns to save (exclude temporary future return columns if needed)
+    df.to_csv(output_path, index=False)
+    print(f"Transformed features saved to {output_path}")
+
+def main():
+    """Main pipeline execution"""
+    print("=== Feature Engineering Pipeline ===")
+    
+    # Step 1: Load data
+    print("\n1. Loading data...")
+    df = load_data()
+    print(f"Loaded data with shape: {df.shape}")
+    
+    # Step 2: Calculate future returns
+    print("\n2. Calculating future returns...")
+    df, future_returns = calculate_future_returns(df)
+    
+    # Step 3: Generate all transformed features
+    print("\n3. Applying transformations to all features...")
+    transformed_features, feature_metadata = generate_all_features(df)
+    
+    # Step 4: Calculate IC values for all features
+    print("\n4. Calculating Information Coefficients...")
+    df, feature_metadata = calculate_ics_for_all_features(df, transformed_features, feature_metadata)
+    
+    # Step 5: Generate report
+    print("\n5. Generating report...")
+    report = generate_report(feature_metadata)
+    
+    # Step 6: Save results
+    print("\n6. Saving results...")
+    save_transformed_features(df)
+    
+    # Display top features
+    print("\n=== TOP 10 FEATURES BY ABSOLUTE IC ===")
+    top_features = sorted(
+        feature_metadata.items(),
+        key=lambda x: abs(x[1]['max_ic']),
+        reverse=True
+    )[:10]
+    
+    for i, (feature_name, metadata) in enumerate(top_features, 1):
+        print(f"{i:2d}. {feature_name}")
+        print(f"    Base Column: {metadata['base_column']}")
+        print(f"    Transformation: {metadata['transformation']}")
+        print(f"    Max IC: {metadata['max_ic']:.6f}")
+        print(f"    Best Shift: {metadata['best_shift']}")
+        print()
+    
+    print("Pipeline completed successfully!")
+
+if __name__ == "__main__":
+    main()

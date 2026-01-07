@@ -47,20 +47,20 @@ class Strategy(BaseStrategy):
 
     async def on_backtest_complete(self, strategy: StrategyTrader):
         df = pd.DataFrame(self.datasource_data)
-        df.to_csv("./../Data/CG_BTC_hour_open-interestl.csv") #Day Hour 10m 1h 24h
+        df.to_csv("./../Data/CG_SUI_hour_taker-buy-sell-volume.csv") #Day Hour 10m 1h 24h
 
         time_taken = datetime.utcnow() - self.start_time
         print("Total time taken: ", time_taken)
 
 config = RuntimeConfig(
     mode=RuntimeMode.Backtest,
-    datasource_topics=["coinglass|futures/price/history?exchange=Binance&symbol=BTCUSDT&interval=1h"],
+    datasource_topics=["coinglass|futures/v2/taker-buy-sell-volume/history?exchange=Binance&symbol=SUIUSDT&interval=1h"],
     candle_topics=[],
     active_order_interval=1,
     initial_capital=10_000.0,
     exchange_keys="./asdfasd.json",
-    start_time=datetime(2024, 1, 11, 0, 0, 0, tzinfo=timezone.utc),
-    end_time=datetime(2025, 7, 14, 0, 0, 0, tzinfo=timezone.utc),
+    start_time=datetime(2024, 5, 11, 0, 0, 0, tzinfo=timezone.utc),
+    end_time=datetime(2025, 8, 3, 0, 0, 0, tzinfo=timezone.utc),
     data_count=100,
     api_key="1PrnrxujzPkaSbCqK7a5x4czOqG7OX3gMHqalvcVWmYB6aXu",
     api_secret="72ehcnPKjSktBEYOoLCEadOrZMcW1WAELscRgEMZCcc0imIKkg5EzZK156ZO0lEtXaiOw5hW",

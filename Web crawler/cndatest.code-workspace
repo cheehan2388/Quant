@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "cndatest",
+			"path": "../.."
+		}
+	],
+	"settings": {
+		"python.defaultInterpreterPath": "",
+		"python.envFile": "C:\\Users\\user\\cndatest\\path\\myvenv",
+		"git.ignoreLimitWarning": true
+	}
+}

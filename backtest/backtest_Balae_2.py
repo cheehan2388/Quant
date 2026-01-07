@@ -2,15 +2,17 @@ import os
 import sys
 import json
 import numpy as np
+from typing import Optional, Union
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-import plotly.graph_objects as go
-import  lib .model as md
-import lib .bt_strat as bt_strat
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+if CURRENT_DIR not in sys.path:
+    sys.path.insert(0, CURRENT_DIR)
+
+from lib import model as md
+from lib import bt_strat as bt_strat
 #param_zone
-import json
-import numpy as np
 
 class Int32Encoder(json.JSONEncoder):
     def default(self, obj):
@@ -67,30 +69,81 @@ def sortino_ratio(returns, rf=0.0, periods_per_year=365):
         return np.inf if excess.mean() > 0 else -np.inf
     return (excess.mean() / downside_std) * np.sqrt(periods_per_year)
 
+def _infer_periods_per_year(index: pd.Index) -> float:
+    if isinstance(index, pd.DatetimeIndex) and len(index) > 1:
+        try:
+            freq = pd.infer_freq(index)
+            if freq is not None:
+                f = freq.lower()
+                if f in ('d', '1d'):
+                    return 365.0
+                if 'h' in f:
+                    hours = float(f.replace('h', '')) if f != 'h' else 1.0
+                    return 365.0 * (24.0 / hours)
+                if 'min' in f:
+                    mins = float(f.replace('min', '')) if f != 'min' else 1.0
+                    return 365.0 * (24.0 * 60.0 / mins)
+                if 't' in f:
+                    mins = float(f.replace('t', '')) if f != 't' else 1.0
+                    return 365.0 * (24.0 * 60.0 / mins)
+        except Exception:
+            pass
+        deltas = index.to_series().diff().dropna().dt.total_seconds()
+        if not deltas.empty:
+            secs = float(deltas.median())
+            if secs > 0:
+                return 365.0 * (86400.0 / secs)
+    return 365.0
+
+def _sr_multiplier_from_interval(interval: Optional[str]) -> Optional[float]:
+    if not interval:
+        return None
+    text = str(interval).lower().strip()
+    if text in { '1d', 'd', 'day', 'daily' }:
+        return 1.0
+    if text in { '4h' }:
+        return 6.0
+    if text in { '1h', 'h', 'hour', '1hr' }:
+        return 24.0
+    if text in { '30m', '30min' }:
+        return 48.0
+    if text in { '15m', '15min' }:
+        return 96.0
+    if text in { '5m', '5min' }:
+        return 288.0
+    if text in { '1m', '1min' }:
+        return 1440.0
+    return None
+
 # -------------------------
 # 1. Data Loader & Splitter
 # -------------------------
 def load_and_split_data(
     df,
-    date_col: str = date_col ,
+    date_col: str = date_col,
     backtest_years: int = 1,
-    forward_years: int = 1
+    forward_years: int = 1,
+    split_ratio: Optional[float] = None,
+    split_date: Optional[Union[str, pd.Timestamp]] = None
 ):
 
-    start = df.index.min()
-    back_lens = len(df)*(6/10)
-    val_lens = len(df)*(2/10)
-            
-    # df_back = df.loc[:].copy()
-    # # df_val  = df.loc[back_lens:val_lens].copy() 
-    # df_fwd  = df.loc[:]
-    back_end = start + pd.DateOffset(years=backtest_years)
-    forward_end = back_end + pd.DateOffset(years=forward_years)
+    if split_date is not None:
+        split_ts = pd.to_datetime(split_date)
+        df_back = df.loc[:split_ts].copy()
+        df_fwd = df.loc[split_ts:].copy()
+        return df_back, df_fwd
 
-    
+    if split_ratio is not None and 0 < split_ratio < 1:
+        idx = int(len(df) * split_ratio)
+        df_back = df.iloc[:idx].copy()
+        df_fwd = df.iloc[idx:].copy()
+        return df_back, df_fwd
+
+    start = df.index.min()
+    back_end = start + pd.DateOffset(years=backtest_years)
+
     df_back = df.loc[:back_end].copy()
     df_fwd  = df.loc[back_end:].copy()
-    # df_fwd  = df.loc[:forward_end].copy()
     return df_back, df_fwd
 
 
@@ -170,37 +223,41 @@ def plot_parameter_heatmaps(df, model, strategy, output_dir, interval, data_nam)
 # -------------------------
 # 4. Backtester & Metrics
 # -------------------------
-def backtest(price: pd.Series, positions: pd.Series, sr_multiplier: float, fee : float):
+def backtest(price: pd.Series, positions: pd.Series, sr_multiplier: Optional[float], fee : float):
 
+    positions = positions.reindex(price.index).fillna(0)
     pos_shift = positions.shift(1).fillna(0)
-    trade_signal = (positions - pos_shift).abs().astype(int) # 1 = 今天开/平仓，0 = 保持不变, 因爲是今天高於thres我會在他的clos開positio ,所以是今天不等於明天就是開了一個trad.
-    # 2) 普通 P&L、夏普、DD 等
+    trade_signal = (positions - pos_shift).abs().astype(int)
     ret   = price.pct_change().fillna(0)
     pnl = pos_shift * ret - trade_signal * fee
     equity = pnl.cumsum()
     dd_pct = equity - equity.cummax()
 
-    # 3) 统计指标：这里保留“笔数”做汇总，但用新的键名 num_trades
     num_trades = int(trade_signal.sum())
 
-    sharpe     = pnl.mean() / pnl.std() * np.sqrt(365 * sr_multiplier)
-    ar         = pnl.mean() * 365
-    cr = pnl.mean()* 365 / abs(dd_pct.min())
-    trade_per_interval = num_trades/len(ret)
-    fitness    = sharpe*np.sqrt(abs(pnl)/ max(0.03,trade_per_interval) )
-    sortino    = sortino_ratio(pnl)
+    inferred_py = 365.0 * float(sr_multiplier) if sr_multiplier is not None else _infer_periods_per_year(price.index)
+    pnl_mean = float(pnl.mean()) if len(pnl) else 0.0
+    pnl_std = float(pnl.std(ddof=0)) if len(pnl) else 0.0
+    sharpe_base = (pnl_mean / pnl_std) if pnl_std != 0 else 0.0
+    sharpe     = sharpe_base * np.sqrt(inferred_py)
+    ar         = pnl_mean * inferred_py
+    mdd_val    = float(dd_pct.min()) if len(dd_pct) else 0.0
+    cr         = (pnl_mean * inferred_py) / abs(mdd_val) if abs(mdd_val) > 1e-12 else 0.0
+    trade_per_interval = num_trades/max(1, len(ret))
+    fitness    = sharpe / max(0.03,trade_per_interval)
+    sortino    = sortino_ratio(pnl, periods_per_year=inferred_py)
     return {
         'pnl':            pnl,
         'equity':         equity,
         'trade_signal':   trade_signal,
         'trades':     num_trades,
-        'max_drawdown_pct': dd_pct.min(),
+        'max_drawdown_pct': mdd_val,
         'anualized_return': ar,
         'sharpe':         sharpe,
         'calmar_ratio':   cr,
-        'total_return':   equity.iloc[-1] ,
+        'total_return':   float(equity.iloc[-1]) if len(equity) else 0.0 ,
         'trade_per_interval': trade_per_interval ,
-        'fitness' : fitness,
+        'fitness' : float(fitness),
         'sortino' : sortino
     }
 
@@ -241,7 +298,11 @@ def permutation_test(backtested_df, row ,strat_funcs :dict, models_funcs : dict 
         # recombine shuffled blocks
         shuffled = np.concatenate(blocks)[:n]
         pnl_shuf = pos * shuffled
-        shuf_sh = (pnl_shuf.mean() / pnl_shuf.std()) * np.sqrt(365* sr_multiplier)
+        denom = pnl_shuf.std(ddof=0)
+        if denom == 0:
+            shuf_sh = 0.0
+        else:
+            shuf_sh = (pnl_shuf.mean() / denom) * np.sqrt(365 * (sr_multiplier if sr_multiplier is not None else 1))
         if shuf_sh >= sharpe_or:
             count += 1
 
@@ -266,7 +327,9 @@ def forward_consistent(train, fwd):
 # -------------------------
 def run_pipeline(data_file, output_dir:str,
                  fee:float ,interval:str, column_name : str  ,sr_multiplier = None ,
-                 heatmap = True):
+                 heatmap = True,
+                 split_ratio: Optional[float] = None,
+                 split_date: Optional[Union[str, pd.Timestamp]] = None):
     
     df = pd.read_csv(data_file, parse_dates=[date_col])
     df = df.sort_values(date_col).reset_index(drop=True)
@@ -277,7 +340,12 @@ def run_pipeline(data_file, output_dir:str,
     os.makedirs(output_dir, exist_ok=True)#創立文件
     
     
-    df_back, df_fwd = load_and_split_data(df)
+    # Derive SR multiplier from interval if not provided
+    if sr_multiplier is None:
+        inferred = _sr_multiplier_from_interval(interval)
+        sr_multiplier = inferred if inferred is not None else None
+
+    df_back, df_fwd = load_and_split_data(df, split_ratio=split_ratio, split_date=split_date)
     factor_back = df_back[column_name]
     factor_fwd  = df_fwd[column_name]
 
@@ -294,11 +362,12 @@ def run_pipeline(data_file, output_dir:str,
         'mean_reversion_zero' : bt_strat.positions_mr_mean_zero,
     }
     models_funcs = {
-    # "ewma_diff": md.compute_ewma_diff,
-    "zscore": md.compute_zscore,
-    "min_max_scaling": md.compute_minmax,
-    "ma_diff": md.compute_ma_diff,
-    # "percentile": md.compute_percentile
+        # "ewma_diff": md.compute_ewma_diff,
+        "zscore": md.compute_zscore,
+        "min_max_scaling": md.compute_minmax,
+        "ma_diff": md.compute_ma_diff,
+        "ma_double": md.compute_ma_double,
+        # "percentile": md.compute_percentile
     }
 
     results = []
@@ -398,7 +467,7 @@ def run_pipeline(data_file, output_dir:str,
             "trade_per_interval": float(bt["trade_per_interval"])
         })
 
-    with open(os.path.join(output_dir, f'{fact}_{interval}.json'), "w") as f:
+    with open(os.path.join(output_dir, f'{fact}_{interval}_backtests.json'), "w") as f:
         json.dump({"backtests": backtests_out}, f, indent=4, cls=Int32Encoder)
 
     forward_out = []
@@ -421,7 +490,7 @@ def run_pipeline(data_file, output_dir:str,
             "trade_per_interval": float(bt["trade_per_interval"])
         })
 
-    with open(os.path.join(output_dir, f'{fact}_{interval}.json'), "w") as f:
+    with open(os.path.join(output_dir, f'{fact}_{interval}_forward.json'), "w") as f:
         json.dump({"forward": forward_out}, f, indent=4, cls=Int32Encoder)
 
 
@@ -468,11 +537,10 @@ def run_pipeline(data_file, output_dir:str,
     #heatmap_all_resul
     df_all = pd.DataFrame(all_results)
     
-    if heatmap == True:
-
-       for f in df_all['model'].unique():
+    if heatmap == True and not df_all.empty:
+        for f in df_all['model'].unique():
             for s in df_all[df_all['model']==f]['strategy'].unique():
-                plot_parameter_heatmaps(df_all, f, s, output_dir, interval, data_nam = data)
+                plot_parameter_heatmaps(df_all, f, s, output_dir, interval, data_nam=fact)
 
 
     # if nothing passed, bail out 

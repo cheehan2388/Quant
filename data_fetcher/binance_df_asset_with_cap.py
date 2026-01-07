@@ -73,7 +73,7 @@ def fetch_klines(symbol: str, interval: str,
     if df.empty:
         return df
 
-    df["Open time"]  = pd.to_datetime(df["Open time"],  unit="ms", utc=True)
+    df["datetime"]  = pd.to_datetime(df["Open time"],  unit="ms",format=  '%d/%m/%Y %H:%M', utc=True)
     df["Close time"] = pd.to_datetime(df["Close time"], unit="ms", utc=True)
     df.set_index("Open time", inplace=True)
 

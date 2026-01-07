@@ -1,0 +1,754 @@
+schedule:
+  interval_seconds: 21600  # 6 hours
+
+providers:
+  # Crypto market data
+  - type: binance_klines
+    name: binance_btcusdt_1h
+    enabled: true
+    output: binance_btcusdt_1h.csv
+    params:
+      symbol: BTCUSDT
+      interval: 1h
+      frequency: 1H
+      default_lookback_days: 30
+      chunk_hours: 500
+
+  - type: coingecko_market_chart
+    name: coingecko_btc_usd_1d
+    enabled: true
+    output: coingecko_btc_usd_1d.csv
+    params:
+      coin_id: bitcoin
+      vs_currency: usd
+      frequency: 1D
+      default_lookback_days: 365
+      chunk_days: 180
+
+  - type: coinbase_candles
+    name: coinbase_btcusd_1h
+    enabled: false
+    output: coinbase_btcusd_1h.csv
+    params:
+      product_id: BTC-USD
+      granularity: 3600
+      frequency: 1H
+      default_lookback_days: 7
+
+  - type: bitfinex_candles
+    name: bitfinex_btcusd_1h
+    enabled: false
+    output: bitfinex_btcusd_1h.csv
+    params:
+      symbol: tBTCUSD
+      timeframe: 1h
+      frequency: 1H
+      default_lookback_days: 60
+
+  - type: kraken_ohlc
+    name: kraken_xbt_usd_1h
+    enabled: false
+    output: kraken_xbt_usd_1h.csv
+    params:
+      pair: XBTUSD
+      interval_minutes: 60
+      frequency: 1H
+      default_lookback_days: 14
+
+  - type: bitstamp_ohlc
+    name: bitstamp_btcusd_1h
+    enabled: false
+    output: bitstamp_btcusd_1h.csv
+    params:
+      pair: btcusd
+      step: 3600
+      frequency: 1H
+      default_lookback_days: 14
+
+  - type: kucoin_candles
+    name: kucoin_btcusdt_1h
+    enabled: false
+    output: kucoin_btcusdt_1h.csv
+    params:
+      symbol: BTC-USDT
+      type: 1hour
+      frequency: 1H
+      default_lookback_days: 30
+
+  - type: okx_candles
+    name: okx_btcusdt_1h
+    enabled: false
+    output: okx_btcusdt_1h.csv
+    params:
+      instId: BTC-USDT
+      bar: 1H
+      frequency: 1H
+      default_lookback_days: 30
+
+  - type: huobi_klines
+    name: huobi_btcusdt_1h
+    enabled: false
+    output: huobi_btcusdt_1h.csv
+    params:
+      symbol: btcusdt
+      period: 60min
+      frequency: 1H
+      default_lookback_days: 30
+
+  - type: coinpaprika_historical
+    name: coinpaprika_btc_usd_1d
+    enabled: false
+    output: coinpaprika_btc_usd_1d.csv
+    params:
+      coin_id: btc-bitcoin
+      frequency: 1D
+      default_lookback_days: 365
+
+  - type: coindesk_bpi
+    name: coindesk_bpi_usd
+    enabled: true
+    output: coindesk_bpi_usd.csv
+    params:
+      currency: USD
+      frequency: 1D
+      default_lookback_days: 365
+
+  # FX and Macro
+  - type: exchangerate_host_timeseries
+    name: fx_usd_eur_1d
+    enabled: true
+    output: fx_usd_eur_1d.csv
+    params:
+      base: USD
+      symbols: EUR
+      frequency: 1D
+      default_lookback_days: 365
+
+  - type: worldbank_indicator
+    name: worldbank_us_pop
+    enabled: false
+    output: worldbank_us_pop.csv
+    params:
+      country: US
+      indicator: SP.POP.TOTL
+      frequency: 1Y
+      default_lookback_days: 3650
+
+  # Public data
+  - type: owid_covid_country
+    name: owid_taiwan_covid
+    enabled: false
+    output: owid_taiwan_covid.csv
+    params:
+      iso_code: TWN
+      frequency: 1D
+      default_lookback_days: 365
+
+  - type: usgs_earthquakes
+    name: us_quakes_daily
+    enabled: false
+    output: us_quakes_daily.csv
+    params:
+      frequency: 1D
+      default_lookback_days: 60
+
+  - type: open_meteo_hourly
+    name: taipei_weather_hourly
+    enabled: false
+    output: taipei_weather_hourly.csv
+    params:
+      latitude: 25.0375
+      longitude: 121.5637
+      hourly: temperature_2m
+      frequency: 1H
+      default_lookback_days: 7
+
+  - type: wikipedia_pageviews
+    name: wikipedia_bitcoin_daily
+    enabled: false
+    output: wikipedia_bitcoin_daily.csv
+    params:
+      project: en.wikipedia
+      access: all-access
+      agent: all-agents
+      article: Bitcoin
+      granularity: daily
+      frequency: 1D
+      default_lookback_days: 365
+
+  - type: fear_greed_index
+    name: fear_greed_daily
+    enabled: false
+    output: fear_greed_daily.csv
+    params:
+      frequency: 1D
+      default_lookback_days: 365
+
+  - type: yahoO_price
+    name: yfinance_spy_1d
+    enabled: false
+    output: yfinance_spy_1d.csv
+    params:
+      ticker: SPY
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: hn_stories_count
+    name: hn_stories_daily
+    enabled: false
+    output: hn_stories_daily.csv
+    params:
+      query: bitcoin
+      frequency: 1D
+      default_lookback_days: 365
+
+
+  # Commodities via Yahoo (futures and ETFs) — add many instruments; enable selectively
+  - type: yahoo_price
+    name: yahoo_wti_crude_cl_f_1d
+    enabled: false
+    output: yahoo_cl_f_1d.csv
+    params:
+      ticker: CL=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_brent_bz_f_1d
+    enabled: false
+    output: yahoo_bz_f_1d.csv
+    params:
+      ticker: BZ=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_natural_gas_ng_f_1d
+    enabled: false
+    output: yahoo_ng_f_1d.csv
+    params:
+      ticker: NG=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_gasoline_rb_f_1d
+    enabled: false
+    output: yahoo_rb_f_1d.csv
+    params:
+      ticker: RB=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_heating_oil_ho_f_1d
+    enabled: false
+    output: yahoo_ho_f_1d.csv
+    params:
+      ticker: HO=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_gold_gc_f_1d
+    enabled: false
+    output: yahoo_gc_f_1d.csv
+    params:
+      ticker: GC=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_silver_si_f_1d
+    enabled: false
+    output: yahoo_si_f_1d.csv
+    params:
+      ticker: SI=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_platinum_pl_f_1d
+    enabled: false
+    output: yahoo_pl_f_1d.csv
+    params:
+      ticker: PL=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_palladium_pa_f_1d
+    enabled: false
+    output: yahoo_pa_f_1d.csv
+    params:
+      ticker: PA=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_copper_hg_f_1d
+    enabled: false
+    output: yahoo_hg_f_1d.csv
+    params:
+      ticker: HG=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_corn_zc_f_1d
+    enabled: false
+    output: yahoo_zc_f_1d.csv
+    params:
+      ticker: ZC=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_soybeans_zs_f_1d
+    enabled: false
+    output: yahoo_zs_f_1d.csv
+    params:
+      ticker: ZS=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_wheat_zw_f_1d
+    enabled: false
+    output: yahoo_zw_f_1d.csv
+    params:
+      ticker: ZW=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_hrw_wheat_ke_f_1d
+    enabled: false
+    output: yahoo_ke_f_1d.csv
+    params:
+      ticker: KE=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_coffee_kc_f_1d
+    enabled: false
+    output: yahoo_kc_f_1d.csv
+    params:
+      ticker: KC=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_sugar_sb_f_1d
+    enabled: false
+    output: yahoo_sb_f_1d.csv
+    params:
+      ticker: SB=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_cocoa_cc_f_1d
+    enabled: false
+    output: yahoo_cc_f_1d.csv
+    params:
+      ticker: CC=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_cotton_ct_f_1d
+    enabled: false
+    output: yahoo_ct_f_1d.csv
+    params:
+      ticker: CT=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_orange_juice_oj_f_1d
+    enabled: false
+    output: yahoo_oj_f_1d.csv
+    params:
+      ticker: OJ=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_live_cattle_le_f_1d
+    enabled: false
+    output: yahoo_le_f_1d.csv
+    params:
+      ticker: LE=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_lean_hogs_he_f_1d
+    enabled: false
+    output: yahoo_he_f_1d.csv
+    params:
+      ticker: HE=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_feeder_cattle_gf_f_1d
+    enabled: false
+    output: yahoo_gf_f_1d.csv
+    params:
+      ticker: GF=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_lumber_lbs_f_1d
+    enabled: false
+    output: yahoo_lbs_f_1d.csv
+    params:
+      ticker: LBS=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  # Broad commodity ETFs
+  - type: yahoo_price
+    name: yahoo_dbc_1d
+    enabled: false
+    output: yahoo_dbc_1d.csv
+    params:
+      ticker: DBC
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_gsg_1d
+    enabled: false
+    output: yahoo_gsg_1d.csv
+    params:
+      ticker: GSG
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_pdbc_1d
+    enabled: false
+    output: yahoo_pdbc_1d.csv
+    params:
+      ticker: PDBC
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_comt_1d
+    enabled: false
+    output: yahoo_comt_1d.csv
+    params:
+      ticker: COMT
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_cmdy_1d
+    enabled: false
+    output: yahoo_cmdy_1d.csv
+    params:
+      ticker: CMDY
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  # Energy ETFs
+  - type: yahoo_price
+    name: yahoo_uso_1d
+    enabled: false
+    output: yahoo_uso_1d.csv
+    params:
+      ticker: USO
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_bno_1d
+    enabled: false
+    output: yahoo_bno_1d.csv
+    params:
+      ticker: BNO
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_ung_1d
+    enabled: false
+    output: yahoo_ung_1d.csv
+    params:
+      ticker: UNG
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_uga_1d
+    enabled: false
+    output: yahoo_uga_1d.csv
+    params:
+      ticker: UGA
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  # Precious metals ETFs
+  - type: yahoo_price
+    name: yahoo_gld_1d
+    enabled: false
+    output: yahoo_gld_1d.csv
+    params:
+      ticker: GLD
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_iau_1d
+    enabled: false
+    output: yahoo_iau_1d.csv
+    params:
+      ticker: IAU
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_slv_1d
+    enabled: false
+    output: yahoo_slv_1d.csv
+    params:
+      ticker: SLV
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_pplt_1d
+    enabled: false
+    output: yahoo_pplt_1d.csv
+    params:
+      ticker: PPLT
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_pall_1d
+    enabled: false
+    output: yahoo_pall_1d.csv
+    params:
+      ticker: PALL
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  # Agriculture ETFs
+  - type: yahoo_price
+    name: yahoo_dba_1d
+    enabled: false
+    output: yahoo_dba_1d.csv
+    params:
+      ticker: DBA
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_corn_1d
+    enabled: false
+    output: yahoo_corn_1d.csv
+    params:
+      ticker: CORN
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_soyb_1d
+    enabled: false
+    output: yahoo_soyb_1d.csv
+    params:
+      ticker: SOYB
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_weat_1d
+    enabled: false
+    output: yahoo_weat_1d.csv
+    params:
+      ticker: WEAT
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_jo_1d
+    enabled: false
+    output: yahoo_jo_1d.csv
+    params:
+      ticker: JO
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_cane_1d
+    enabled: false
+    output: yahoo_cane_1d.csv
+    params:
+      ticker: CANE
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_nib_1d
+    enabled: false
+    output: yahoo_nib_1d.csv
+    params:
+      ticker: NIB
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_bal_1d
+    enabled: false
+    output: yahoo_bal_1d.csv
+    params:
+      ticker: BAL
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  # Industrial metals ETFs
+  - type: yahoo_price
+    name: yahoo_cper_1d
+    enabled: false
+    output: yahoo_cper_1d.csv
+    params:
+      ticker: CPER
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_dbb_1d
+    enabled: false
+    output: yahoo_dbb_1d.csv
+    params:
+      ticker: DBB
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  # Timber/wood ETFs
+  - type: yahoo_price
+    name: yahoo_wood_1d
+    enabled: false
+    output: yahoo_wood_1d.csv
+    params:
+      ticker: WOOD
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_cut_1d
+    enabled: false
+    output: yahoo_cut_1d.csv
+    params:
+      ticker: CUT
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  # Uranium
+  - type: yahoo_price
+    name: yahoo_ura_1d
+    enabled: false
+    output: yahoo_ura_1d.csv
+    params:
+      ticker: URA
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  # Additional grains and softs futures
+  - type: yahoo_price
+    name: yahoo_oats_zo_f_1d
+    enabled: false
+    output: yahoo_zo_f_1d.csv
+    params:
+      ticker: ZO=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_rough_rice_zr_f_1d
+    enabled: false
+    output: yahoo_zr_f_1d.csv
+    params:
+      ticker: ZR=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_canola_rs_f_1d
+    enabled: false
+    output: yahoo_rs_f_1d.csv
+    params:
+      ticker: RS=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: yahoo_price
+    name: yahoo_milk_dc_f_1d
+    enabled: false
+    output: yahoo_dc_f_1d.csv
+    params:
+      ticker: DC=F
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650

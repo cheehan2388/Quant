@@ -1,0 +1,1171 @@
+schedule:
+  interval_seconds: 21600  # 6 hours
+
+defaults:
+  start_date: '2020-01-01T00:00:00Z'
+
+providers:
+  # Crypto market data
+  - type: binance_klines
+    name: binance_btcusdt_1h
+    enabled: true
+    output: binance_btcusdt_1h.csv
+    params:
+      symbol: BTCUSDT
+      interval: 1h
+      frequency: 1H
+      default_lookback_days: 30
+      chunk_hours: 500
+  
+  - type: coingecko_market_chart
+    name: coingecko_btc_usd_1d
+    enabled: true
+    output: coingecko_btc_usd_1d.csv
+    params:
+      coin_id: bitcoin
+      vs_currency: usd
+      frequency: 1D
+      default_lookback_days: 3650
+      chunk_days: 365
+
+  - type: coinbase_candles
+    name: coinbase_btcusd_1h
+    enabled: false
+    output: coinbase_btcusd_1h.csv
+    params:
+      product_id: BTC-USD
+      granularity: 3600
+      frequency: 1H
+      default_lookback_days: 7
+
+  - type: bitfinex_candles
+    name: bitfinex_btcusd_1h
+    enabled: false
+    output: bitfinex_btcusd_1h.csv
+    params:
+      symbol: tBTCUSD
+      timeframe: 1h
+      frequency: 1H
+      default_lookback_days: 60
+
+  - type: kraken_ohlc
+    name: kraken_xbt_usd_1h
+    enabled: false
+    output: kraken_xbt_usd_1h.csv
+    params:
+      pair: XBTUSD
+      interval_minutes: 60
+      frequency: 1H
+      default_lookback_days: 14
+
+  - type: bitstamp_ohlc
+    name: bitstamp_btcusd_1h
+    enabled: false
+    output: bitstamp_btcusd_1h.csv
+    params:
+      pair: btcusd
+      step: 3600
+      frequency: 1H
+      default_lookback_days: 14
+
+  - type: kucoin_candles
+    name: kucoin_btcusdt_1h
+    enabled: false
+    output: kucoin_btcusdt_1h.csv
+    params:
+      symbol: BTC-USDT
+      type: 1hour
+      frequency: 1H
+      default_lookback_days: 30
+
+  - type: okx_candles
+    name: okx_btcusdt_1h
+    enabled: false
+    output: okx_btcusdt_1h.csv
+    params:
+      instId: BTC-USDT
+      bar: 1H
+      frequency: 1H
+      default_lookback_days: 30
+
+  - type: huobi_klines
+    name: huobi_btcusdt_1h
+    enabled: false
+    output: huobi_btcusdt_1h.csv
+    params:
+      symbol: btcusdt
+      period: 60min
+      frequency: 1H
+      default_lookback_days: 30
+
+  - type: coinpaprika_historical
+    name: coinpaprika_btc_usd_1d
+    enabled: false
+    output: coinpaprika_btc_usd_1d.csv
+    params:
+      coin_id: btc-bitcoin
+      frequency: 1D
+      default_lookback_days: 365
+
+  - type: coindesk_bpi
+    name: coindesk_bpi_usd
+    enabled: true
+    output: coindesk_bpi_usd.csv
+    params:
+      currency: USD
+      frequency: 1D
+      default_lookback_days: 365
+
+  # FX and Macro
+  - type: exchangerate_host_timeseries
+    name: fx_usd_eur_1d
+    enabled: true
+    output: fx_usd_eur_1d.csv
+    params:
+      base: USD
+      symbols: EUR
+      frequency: 1D
+      default_lookback_days: 365
+
+  - type: worldbank_indicator
+    name: worldbank_us_pop
+    enabled: false
+    output: worldbank_us_pop.csv
+    params:
+      country: US
+      indicator: SP.POP.TOTL
+      frequency: 1Y
+      default_lookback_days: 3650
+
+  # Public data
+  - type: owid_covid_country
+    name: owid_taiwan_covid
+    enabled: false
+    output: owid_taiwan_covid.csv
+    params:
+      iso_code: TWN
+      frequency: 1D
+      default_lookback_days: 365
+
+  - type: usgs_earthquakes
+    name: us_quakes_daily
+    enabled: false
+    output: us_quakes_daily.csv
+    params:
+      frequency: 1D
+      default_lookback_days: 60
+
+  - type: open_meteo_hourly
+    name: taipei_weather_hourly
+    enabled: false
+    output: taipei_weather_hourly.csv
+    params:
+      latitude: 25.0375
+      longitude: 121.5637
+      hourly: temperature_2m
+      frequency: 1H
+      default_lookback_days: 7
+
+  - type: wikipedia_pageviews
+    name: wikipedia_bitcoin_daily
+    enabled: false
+    output: wikipedia_bitcoin_daily.csv
+    params:
+      project: en.wikipedia
+      access: all-access
+      agent: all-agents
+      article: Bitcoin
+      granularity: daily
+      frequency: 1D
+      default_lookback_days: 365
+
+  - type: fear_greed_index
+    name: fear_greed_daily
+    enabled: false
+    output: fear_greed_daily.csv
+    params:
+      frequency: 1D
+      default_lookback_days: 365
+
+  - type: yahoo_price
+    name: yfinance_spy_1d
+    enabled: false
+    output: yfinance_spy_1d.csv
+    params:
+      ticker: SPY
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 3650
+
+  - type: hn_stories_count
+    name: hn_stories_daily
+    enabled: false
+    output: hn_stories_daily.csv
+    params:
+      query: bitcoin
+      frequency: 1D
+      default_lookback_days: 365
+
+  - type: ecb_fx_daily
+    name: ecb_eur_usd_1d
+    enabled: true
+    output: ecb_eur_usd_1d.csv
+    params:
+      symbols: USD
+      frequency: 1D
+      default_lookback_days: 3650
+
+
+  # ---- Crypto suite: BTC, ETH, BNB, LINK, XRP, DOGE, SOL ----
+  # For each asset we add multiple data types to exceed 100 total types
+
+  # Binance spot klines 1h and 1d
+  - type: binance_klines
+    name: binance_ethusdt_1h
+    enabled: true
+    output: binance_ethusdt_1h.csv
+    params:
+      symbol: ETHUSDT
+      interval: 1h
+      frequency: 1H
+      default_lookback_days: 60
+
+  - type: binance_klines
+    name: binance_ethusdt_1d
+    enabled: false
+    output: binance_ethusdt_1d.csv
+    params:
+      symbol: ETHUSDT
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 365
+      chunk_days: 180
+
+  - type: binance_klines
+    name: binance_bnbusdt_1h
+    enabled: false
+    output: binance_bnbusdt_1h.csv
+    params:
+      symbol: BNBUSDT
+      interval: 1h
+      frequency: 1H
+      default_lookback_days: 60
+
+  - type: binance_klines
+    name: binance_bnbusdt_1d
+    enabled: false
+    output: binance_bnbusdt_1d.csv
+    params:
+      symbol: BNBUSDT
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 365
+      chunk_days: 180
+
+  - type: binance_klines
+    name: binance_linkusdt_1h
+    enabled: false
+    output: binance_linkusdt_1h.csv
+    params:
+      symbol: LINKUSDT
+      interval: 1h
+      frequency: 1H
+      default_lookback_days: 60
+
+  - type: binance_klines
+    name: binance_linkusdt_1d
+    enabled: false
+    output: binance_linkusdt_1d.csv
+    params:
+      symbol: LINKUSDT
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 365
+      chunk_days: 180
+
+  - type: binance_klines
+    name: binance_xrpusdt_1h
+    enabled: false
+    output: binance_xrpusdt_1h.csv
+    params:
+      symbol: XRPUSDT
+      interval: 1h
+      frequency: 1H
+      default_lookback_days: 60
+
+  - type: binance_klines
+    name: binance_xrpusdt_1d
+    enabled: false
+    output: binance_xrpusdt_1d.csv
+    params:
+      symbol: XRPUSDT
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 365
+      chunk_days: 180
+
+  - type: binance_klines
+    name: binance_dogeusdt_1h
+    enabled: false
+    output: binance_dogeusdt_1h.csv
+    params:
+      symbol: DOGEUSDT
+      interval: 1h
+      frequency: 1H
+      default_lookback_days: 60
+
+  - type: binance_klines
+    name: binance_dogeusdt_1d
+    enabled: false
+    output: binance_dogeusdt_1d.csv
+    params:
+      symbol: DOGEUSDT
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 365
+      chunk_days: 180
+
+  - type: binance_klines
+    name: binance_solusdt_1h
+    enabled: false
+    output: binance_solusdt_1h.csv
+    params:
+      symbol: SOLUSDT
+      interval: 1h
+      frequency: 1H
+      default_lookback_days: 60
+
+  - type: binance_klines
+    name: binance_solusdt_1d
+    enabled: false
+    output: binance_solusdt_1d.csv
+    params:
+      symbol: SOLUSDT
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 365
+      chunk_days: 180
+
+  # Bybit linear perps 1h
+  - type: bybit_klines
+    name: bybit_btcusdt_1h
+    enabled: false
+    output: bybit_btcusdt_1h.csv
+    params:
+      category: linear
+      symbol: BTCUSDT
+      interval: '60'
+      frequency: 1H
+
+  - type: bybit_klines
+    name: bybit_ethusdt_1h
+    enabled: false
+    output: bybit_ethusdt_1h.csv
+    params:
+      category: linear
+      symbol: ETHUSDT
+      interval: '60'
+      frequency: 1H
+
+  - type: bybit_klines
+    name: bybit_bnbusdt_1h
+    enabled: false
+    output: bybit_bnbusdt_1h.csv
+    params:
+      category: linear
+      symbol: BNBUSDT
+      interval: '60'
+      frequency: 1H
+
+  - type: bybit_klines
+    name: bybit_linkusdt_1h
+    enabled: false
+    output: bybit_linkusdt_1h.csv
+    params:
+      category: linear
+      symbol: LINKUSDT
+      interval: '60'
+      frequency: 1H
+
+  - type: bybit_klines
+    name: bybit_xrpusdt_1h
+    enabled: false
+    output: bybit_xrpusdt_1h.csv
+    params:
+      category: linear
+      symbol: XRPUSDT
+      interval: '60'
+      frequency: 1H
+
+  - type: bybit_klines
+    name: bybit_dogeusdt_1h
+    enabled: false
+    output: bybit_dogeusdt_1h.csv
+    params:
+      category: linear
+      symbol: DOGEUSDT
+      interval: '60'
+      frequency: 1H
+
+  - type: bybit_klines
+    name: bybit_solusdt_1h
+    enabled: false
+    output: bybit_solusdt_1h.csv
+    params:
+      category: linear
+      symbol: SOLUSDT
+      interval: '60'
+      frequency: 1H
+
+  # OKX 1H candles
+  - type: okx_candles
+    name: okx_eth_usdt_1h
+    enabled: false
+    output: okx_eth_usdt_1h.csv
+    params:
+      instId: ETH-USDT
+      bar: 1H
+      frequency: 1H
+
+  - type: okx_candles
+    name: okx_bnb_usdt_1h
+    enabled: false
+    output: okx_bnb_usdt_1h.csv
+    params:
+      instId: BNB-USDT
+      bar: 1H
+      frequency: 1H
+
+  - type: okx_candles
+    name: okx_link_usdt_1h
+    enabled: false
+    output: okx_link_usdt_1h.csv
+    params:
+      instId: LINK-USDT
+      bar: 1H
+      frequency: 1H
+
+  - type: okx_candles
+    name: okx_xrp_usdt_1h
+    enabled: false
+    output: okx_xrp_usdt_1h.csv
+    params:
+      instId: XRP-USDT
+      bar: 1H
+      frequency: 1H
+
+  - type: okx_candles
+    name: okx_doge_usdt_1h
+    enabled: false
+    output: okx_doge_usdt_1h.csv
+    params:
+      instId: DOGE-USDT
+      bar: 1H
+      frequency: 1H
+
+  - type: okx_candles
+    name: okx_sol_usdt_1h
+    enabled: false
+    output: okx_sol_usdt_1h.csv
+    params:
+      instId: SOL-USDT
+      bar: 1H
+      frequency: 1H
+
+  # Kucoin 1hour candles
+  - type: kucoin_candles
+    name: kucoin_eth_usdt_1h
+    enabled: false
+    output: kucoin_eth_usdt_1h.csv
+    params:
+      symbol: ETH-USDT
+      type: 1hour
+      frequency: 1H
+
+  - type: kucoin_candles
+    name: kucoin_bnb_usdt_1h
+    enabled: false
+    output: kucoin_bnb_usdt_1h.csv
+    params:
+      symbol: BNB-USDT
+      type: 1hour
+      frequency: 1H
+
+  - type: kucoin_candles
+    name: kucoin_link_usdt_1h
+    enabled: false
+    output: kucoin_link_usdt_1h.csv
+    params:
+      symbol: LINK-USDT
+      type: 1hour
+      frequency: 1H
+
+  - type: kucoin_candles
+    name: kucoin_xrp_usdt_1h
+    enabled: false
+    output: kucoin_xrp_usdt_1h.csv
+    params:
+      symbol: XRP-USDT
+      type: 1hour
+      frequency: 1H
+
+  - type: kucoin_candles
+    name: kucoin_doge_usdt_1h
+    enabled: false
+    output: kucoin_doge_usdt_1h.csv
+    params:
+      symbol: DOGE-USDT
+      type: 1hour
+      frequency: 1H
+
+  - type: kucoin_candles
+    name: kucoin_sol_usdt_1h
+    enabled: false
+    output: kucoin_sol_usdt_1h.csv
+    params:
+      symbol: SOL-USDT
+      type: 1hour
+      frequency: 1H
+
+  # Coingecko daily price + volume
+  - type: coingecko_market_chart
+    name: coingecko_eth_usd_1d
+    enabled: true
+    output: coingecko_eth_usd_1d.csv
+    params:
+      coin_id: ethereum
+      vs_currency: usd
+      frequency: 1D
+      default_lookback_days: 730
+
+  - type: coingecko_market_chart
+    name: coingecko_bnb_usd_1d
+    enabled: true
+    output: coingecko_bnb_usd_1d.csv
+    params:
+      coin_id: binancecoin
+      vs_currency: usd
+      frequency: 1D
+      default_lookback_days: 730
+
+  - type: coingecko_market_chart
+    name: coingecko_link_usd_1d
+    enabled: true
+    output: coingecko_link_usd_1d.csv
+    params:
+      coin_id: chainlink
+      vs_currency: usd
+      frequency: 1D
+      default_lookback_days: 730
+
+  - type: coingecko_market_chart
+    name: coingecko_xrp_usd_1d
+    enabled: true
+    output: coingecko_xrp_usd_1d.csv
+    params:
+      coin_id: ripple
+      vs_currency: usd
+      frequency: 1D
+      default_lookback_days: 730
+
+  - type: coingecko_market_chart
+    name: coingecko_doge_usd_1d
+    enabled: true
+    output: coingecko_doge_usd_1d.csv
+    params:
+      coin_id: dogecoin
+      vs_currency: usd
+      frequency: 1D
+      default_lookback_days: 730
+
+  - type: coingecko_market_chart
+    name: coingecko_sol_usd_1d
+    enabled: true
+    output: coingecko_sol_usd_1d.csv
+    params:
+      coin_id: solana
+      vs_currency: usd
+      frequency: 1D
+      default_lookback_days: 730
+
+  # CryptoCompare hourly
+  - type: cryptocompare_hourly
+    name: ccompare_btc_usd_1h
+    enabled: false
+    output: ccompare_btc_usd_1h.csv
+    params:
+      fsym: BTC
+      tsym: USD
+      frequency: 1H
+
+  - type: cryptocompare_hourly
+    name: ccompare_eth_usd_1h
+    enabled: false
+    output: ccompare_eth_usd_1h.csv
+    params:
+      fsym: ETH
+      tsym: USD
+      frequency: 1H
+
+  - type: cryptocompare_hourly
+    name: ccompare_bnb_usd_1h
+    enabled: false
+    output: ccompare_bnb_usd_1h.csv
+    params:
+      fsym: BNB
+      tsym: USD
+      frequency: 1H
+
+  - type: cryptocompare_hourly
+    name: ccompare_link_usd_1h
+    enabled: false
+    output: ccompare_link_usd_1h.csv
+    params:
+      fsym: LINK
+      tsym: USD
+      frequency: 1H
+
+  - type: cryptocompare_hourly
+    name: ccompare_xrp_usd_1h
+    enabled: false
+    output: ccompare_xrp_usd_1h.csv
+    params:
+      fsym: XRP
+      tsym: USD
+      frequency: 1H
+
+  - type: cryptocompare_hourly
+    name: ccompare_doge_usd_1h
+    enabled: false
+    output: ccompare_doge_usd_1h.csv
+    params:
+      fsym: DOGE
+      tsym: USD
+      frequency: 1H
+
+  - type: cryptocompare_hourly
+    name: ccompare_sol_usd_1h
+    enabled: false
+    output: ccompare_sol_usd_1h.csv
+    params:
+      fsym: SOL
+      tsym: USD
+      frequency: 1H
+
+  # Binance perps funding and open interest
+  - type: binance_funding_rate
+    name: binance_funding_btcusdt
+    enabled: false
+    output: binance_funding_btcusdt.csv
+    params:
+      symbol: BTCUSDT
+      frequency: 1H
+
+  - type: binance_funding_rate
+    name: binance_funding_ethusdt
+    enabled: false
+    output: binance_funding_ethusdt.csv
+    params:
+      symbol: ETHUSDT
+      frequency: 1H
+
+  - type: binance_funding_rate
+    name: binance_funding_bnbusdt
+    enabled: false
+    output: binance_funding_bnbusdt.csv
+    params:
+      symbol: BNBUSDT
+      frequency: 1H
+
+  - type: binance_funding_rate
+    name: binance_funding_linkusdt
+    enabled: false
+    output: binance_funding_linkusdt.csv
+    params:
+      symbol: LINKUSDT
+      frequency: 1H
+
+  - type: binance_funding_rate
+    name: binance_funding_xrpusdt
+    enabled: false
+    output: binance_funding_xrpusdt.csv
+    params:
+      symbol: XRPUSDT
+      frequency: 1H
+
+  - type: binance_funding_rate
+    name: binance_funding_dogeusdt
+    enabled: false
+    output: binance_funding_dogeusdt.csv
+    params:
+      symbol: DOGEUSDT
+      frequency: 1H
+
+  - type: binance_funding_rate
+    name: binance_funding_solusdt
+    enabled: false
+    output: binance_funding_solusdt.csv
+    params:
+      symbol: SOLUSDT
+      frequency: 1H
+
+  - type: binance_open_interest
+    name: binance_oi_btcusdt_1h
+    enabled: false
+    output: binance_oi_btcusdt_1h.csv
+    params:
+      symbol: BTCUSDT
+      period: 1h
+      frequency: 1H
+
+  - type: binance_open_interest
+    name: binance_oi_ethusdt_1h
+    enabled: false
+    output: binance_oi_ethusdt_1h.csv
+    params:
+      symbol: ETHUSDT
+      period: 1h
+      frequency: 1H
+
+  - type: binance_open_interest
+    name: binance_oi_bnbusdt_1h
+    enabled: false
+    output: binance_oi_bnbusdt_1h.csv
+    params:
+      symbol: BNBUSDT
+      period: 1h
+      frequency: 1H
+
+  - type: binance_open_interest
+    name: binance_oi_linkusdt_1h
+    enabled: false
+    output: binance_oi_linkusdt_1h.csv
+    params:
+      symbol: LINKUSDT
+      period: 1h
+      frequency: 1H
+
+  - type: binance_open_interest
+    name: binance_oi_xrpusdt_1h
+    enabled: false
+    output: binance_oi_xrpusdt_1h.csv
+    params:
+      symbol: XRPUSDT
+      period: 1h
+      frequency: 1H
+
+  - type: binance_open_interest
+    name: binance_oi_dogeusdt_1h
+    enabled: false
+    output: binance_oi_dogeusdt_1h.csv
+    params:
+      symbol: DOGEUSDT
+      period: 1h
+      frequency: 1H
+
+  - type: binance_open_interest
+    name: binance_oi_solusdt_1h
+    enabled: false
+    output: binance_oi_solusdt_1h.csv
+    params:
+      symbol: SOLUSDT
+      period: 1h
+      frequency: 1H
+
+  # Messari price time-series
+  - type: messari_asset_timeseries
+    name: messari_btc_1d
+    enabled: false
+    output: messari_btc_1d.csv
+    params:
+      asset: btc
+      interval: 1d
+      frequency: 1D
+
+  - type: messari_asset_timeseries
+    name: messari_eth_1d
+    enabled: false
+    output: messari_eth_1d.csv
+    params:
+      asset: eth
+      interval: 1d
+      frequency: 1D
+
+  - type: messari_asset_timeseries
+    name: messari_bnb_1d
+    enabled: false
+    output: messari_bnb_1d.csv
+    params:
+      asset: bnb
+      interval: 1d
+      frequency: 1D
+
+  - type: messari_asset_timeseries
+    name: messari_link_1d
+    enabled: false
+    output: messari_link_1d.csv
+    params:
+      asset: link
+      interval: 1d
+      frequency: 1D
+
+  - type: messari_asset_timeseries
+    name: messari_xrp_1d
+    enabled: false
+    output: messari_xrp_1d.csv
+    params:
+      asset: xrp
+      interval: 1d
+      frequency: 1D
+
+  - type: messari_asset_timeseries
+    name: messari_doge_1d
+    enabled: false
+    output: messari_doge_1d.csv
+    params:
+      asset: doge
+      interval: 1d
+      frequency: 1D
+
+  - type: messari_asset_timeseries
+    name: messari_sol_1d
+    enabled: false
+    output: messari_sol_1d.csv
+    params:
+      asset: sol
+      interval: 1d
+      frequency: 1D
+
+  # CoinMetrics community metrics (disabled by default)
+  - type: coinmetrics_community
+    name: cm_btc_metrics_1d
+    enabled: false
+    output: cm_btc_metrics_1d.csv
+    params:
+      assets: [btc]
+      metrics: [PriceUSD,CapMrktCurUSD]
+      frequency: 1D
+
+  - type: coinmetrics_community
+    name: cm_eth_metrics_1d
+    enabled: false
+    output: cm_eth_metrics_1d.csv
+    params:
+      assets: [eth]
+      metrics: [PriceUSD,CapMrktCurUSD]
+      frequency: 1D
+
+  # Coinbase spot candles and BBO for BTC/ETH
+  - type: coinbase_candles
+    name: coinbase_btcusd_1h
+    enabled: false
+    output: coinbase_btcusd_1h.csv
+    params:
+      product_id: BTC-USD
+      granularity: 3600
+      frequency: 1H
+
+  - type: coinbase_candles
+    name: coinbase_ethusd_1h
+    enabled: false
+    output: coinbase_ethusd_1h.csv
+    params:
+      product_id: ETH-USD
+      granularity: 3600
+      frequency: 1H
+
+  - type: coinbase_best_bid_ask
+    name: coinbase_btcusd_bbo
+    enabled: false
+    output: coinbase_btcusd_bbo.csv
+    params:
+      product_id: BTC-USD
+      frequency: 1H
+
+  - type: coinbase_best_bid_ask
+    name: coinbase_ethusd_bbo
+    enabled: false
+    output: coinbase_ethusd_bbo.csv
+    params:
+      product_id: ETH-USD
+      frequency: 1H
+
+  # Kraken and Bitfinex BTC/ETH 1h
+  - type: kraken_ohlc
+    name: kraken_xbt_usd_1h
+    enabled: false
+    output: kraken_xbt_usd_1h.csv
+    params:
+      pair: XBTUSD
+      interval_minutes: 60
+      frequency: 1H
+
+  - type: kraken_ohlc
+    name: kraken_eth_usd_1h
+    enabled: false
+    output: kraken_eth_usd_1h.csv
+    params:
+      pair: ETHUSD
+      interval_minutes: 60
+      frequency: 1H
+
+  - type: bitfinex_candles
+    name: bitfinex_btcusd_1h
+    enabled: false
+    output: bitfinex_btcusd_1h.csv
+    params:
+      symbol: tBTCUSD
+      timeframe: 1h
+      frequency: 1H
+
+  - type: bitfinex_candles
+    name: bitfinex_ethusd_1h
+    enabled: false
+    output: bitfinex_ethusd_1h.csv
+    params:
+      symbol: tETHUSD
+      timeframe: 1h
+      frequency: 1H
+
+  # Bitstamp BTC/ETH 1h
+  - type: bitstamp_ohlc
+    name: bitstamp_btcusd_1h
+    enabled: false
+    output: bitstamp_btcusd_1h.csv
+    params:
+      pair: btcusd
+      step: 3600
+      frequency: 1H
+
+  - type: bitstamp_ohlc
+    name: bitstamp_ethusd_1h
+    enabled: false
+    output: bitstamp_ethusd_1h.csv
+    params:
+      pair: ethusd
+      step: 3600
+      frequency: 1H
+
+  # Extra Binance timeframes for 7 assets (15m, 4h, 1w)
+  - type: binance_klines
+    name: binance_btcusdt_1d
+    enabled: false
+    output: binance_btcusdt_1d.csv
+    params:
+      symbol: BTCUSDT
+      interval: 1d
+      frequency: 1D
+      default_lookback_days: 365
+      chunk_days: 180
+
+  - type: binance_klines
+    name: binance_btcusdt_15m
+    enabled: false
+    output: binance_btcusdt_15m.csv
+    params:
+      symbol: BTCUSDT
+      interval: 15m
+      frequency: 15T
+      default_lookback_days: 14
+
+  - type: binance_klines
+    name: binance_ethusdt_15m
+    enabled: false
+    output: binance_ethusdt_15m.csv
+    params:
+      symbol: ETHUSDT
+      interval: 15m
+      frequency: 15T
+      default_lookback_days: 14
+
+  - type: binance_klines
+    name: binance_bnbusdt_15m
+    enabled: false
+    output: binance_bnbusdt_15m.csv
+    params:
+      symbol: BNBUSDT
+      interval: 15m
+      frequency: 15T
+      default_lookback_days: 14
+
+  - type: binance_klines
+    name: binance_linkusdt_15m
+    enabled: false
+    output: binance_linkusdt_15m.csv
+    params:
+      symbol: LINKUSDT
+      interval: 15m
+      frequency: 15T
+      default_lookback_days: 14
+
+  - type: binance_klines
+    name: binance_xrpusdt_15m
+    enabled: false
+    output: binance_xrpusdt_15m.csv
+    params:
+      symbol: XRPUSDT
+      interval: 15m
+      frequency: 15T
+      default_lookback_days: 14
+
+  - type: binance_klines
+    name: binance_dogeusdt_15m
+    enabled: false
+    output: binance_dogeusdt_15m.csv
+    params:
+      symbol: DOGEUSDT
+      interval: 15m
+      frequency: 15T
+      default_lookback_days: 14
+
+  - type: binance_klines
+    name: binance_solusdt_15m
+    enabled: false
+    output: binance_solusdt_15m.csv
+    params:
+      symbol: SOLUSDT
+      interval: 15m
+      frequency: 15T
+      default_lookback_days: 14
+
+  - type: binance_klines
+    name: binance_btcusdt_4h
+    enabled: false
+    output: binance_btcusdt_4h.csv
+    params:
+      symbol: BTCUSDT
+      interval: 4h
+      frequency: 4H
+      default_lookback_days: 90
+
+  - type: binance_klines
+    name: binance_ethusdt_4h
+    enabled: false
+    output: binance_ethusdt_4h.csv
+    params:
+      symbol: ETHUSDT
+      interval: 4h
+      frequency: 4H
+      default_lookback_days: 90
+
+  - type: binance_klines
+    name: binance_bnbusdt_4h
+    enabled: false
+    output: binance_bnbusdt_4h.csv
+    params:
+      symbol: BNBUSDT
+      interval: 4h
+      frequency: 4H
+      default_lookback_days: 90
+
+  - type: binance_klines
+    name: binance_linkusdt_4h
+    enabled: false
+    output: binance_linkusdt_4h.csv
+    params:
+      symbol: LINKUSDT
+      interval: 4h
+      frequency: 4H
+      default_lookback_days: 90
+
+  - type: binance_klines
+    name: binance_xrpusdt_4h
+    enabled: false
+    output: binance_xrpusdt_4h.csv
+    params:
+      symbol: XRPUSDT
+      interval: 4h
+      frequency: 4H
+      default_lookback_days: 90
+
+  - type: binance_klines
+    name: binance_dogeusdt_4h
+    enabled: false
+    output: binance_dogeusdt_4h.csv
+    params:
+      symbol: DOGEUSDT
+      interval: 4h
+      frequency: 4H
+      default_lookback_days: 90
+
+  - type: binance_klines
+    name: binance_solusdt_4h
+    enabled: false
+    output: binance_solusdt_4h.csv
+    params:
+      symbol: SOLUSDT
+      interval: 4h
+      frequency: 4H
+      default_lookback_days: 90
+
+  - type: binance_klines
+    name: binance_btcusdt_1w
+    enabled: false
+    output: binance_btcusdt_1w.csv
+    params:
+      symbol: BTCUSDT
+      interval: 1w
+      frequency: 7D
+      default_lookback_days: 3650
+
+  - type: binance_klines
+    name: binance_ethusdt_1w
+    enabled: false
+    output: binance_ethusdt_1w.csv
+    params:
+      symbol: ETHUSDT
+      interval: 1w
+      frequency: 7D
+      default_lookback_days: 3650
+
+  - type: binance_klines
+    name: binance_bnbusdt_1w
+    enabled: false
+    output: binance_bnbusdt_1w.csv
+    params:
+      symbol: BNBUSDT
+      interval: 1w
+      frequency: 7D
+      default_lookback_days: 3650
+
+  - type: binance_klines
+    name: binance_linkusdt_1w
+    enabled: false
+    output: binance_linkusdt_1w.csv
+    params:
+      symbol: LINKUSDT
+      interval: 1w
+      frequency: 7D
+      default_lookback_days: 3650
+
+  - type: binance_klines
+    name: binance_xrpusdt_1w
+    enabled: false
+    output: binance_xrpusdt_1w.csv
+    params:
+      symbol: XRPUSDT
+      interval: 1w
+      frequency: 7D
+      default_lookback_days: 3650
+
+  - type: binance_klines
+    name: binance_dogeusdt_1w
+    enabled: false
+    output: binance_dogeusdt_1w.csv
+    params:
+      symbol: DOGEUSDT
+      interval: 1w
+      frequency: 7D
+      default_lookback_days: 3650
+
+  - type: binance_klines
+    name: binance_solusdt_1w
+    enabled: false
+    output: binance_solusdt_1w.csv
+    params:
+      symbol: SOLUSDT
+      interval: 1w
+      frequency: 7D
+      default_lookback_days: 3650
+
+
